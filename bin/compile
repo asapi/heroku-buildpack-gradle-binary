@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir> <env-dir>
+
+GRADLE_VERSION=$(cat "$1/.gradle-version")
+[ -n "$GRADLE_VERSION" ] || GRADLE_VERSION=3.4.1
+
+GRADLE_BINARY="gradle-$GRADLE_VERSION-bin.zip"
+GRADLE_BINARY_URL="https://services.gradle.org/distributions/$GRADLE_BINARY"
+
+if [ -f "$2/$GRADLE_BINARY" ]
+then
+echo "-----> Using cached Gradle $GRADLE_VERSION"
+else
+echo "-----> Fetching Gradle $GRADLE_VERSION"
+curl --silent --location "$GRADLE_BINARY_URL" -o "$2/$GRADLE_BINARY"
+fi
+
+echo "-----> Installing Gradle $GRADLE_VERSION"
+unzip -q "$2/$GRADLE_BINARY" -d "$1" || rm "$2/$GRADLE_BINARY"
+mv "$1/gradle-$GRADLE_VERSION" "$1/gradle"
+
+mkdir -p "$1/.profile.d"
+echo 'export PATH="$HOME/gradle/bin:$PATH"' >> "$1/.profile.d/gradle-path.sh"
